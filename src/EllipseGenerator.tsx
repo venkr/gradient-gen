@@ -1,6 +1,8 @@
 import React, { useState, useRef } from 'react';
 import { Button } from './components/ui/button';
 import { Card } from './components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './components/ui/select';
+import { Label } from './components/ui/label';
 
 interface EllipseConfig {
   color: string;
@@ -11,11 +13,15 @@ interface EllipseConfig {
   translation: [number, number];
 }
 
-const colors = ['#5135FF', '#FF5828', '#F69CFF', '#FFA50F'];
+const colorPalettes = {
+  'OpenAI (2020)': ['#5135FF', '#FF5828', '#F69CFF', '#FFA50F'],
+  'venki.dev #1': ['#FE69B7', '#BC0A6F', '#00F5FF', '#7B68EE'],
+  'venki.dev #2': ['#FE69B7', '#BC0A6F', '#E6E6FA', '#6495ED']
+};
 
-function generateRandomEllipse(): EllipseConfig {
+function generateRandomEllipse(palette: string[]): EllipseConfig {
   return {
-    color: colors[Math.floor(Math.random() * colors.length)],
+    color: palette[Math.floor(Math.random() * palette.length)],
     fx: 0.1 + Math.random() * 0.3,
     scale: [0.7 + Math.random() * 0.8, 0.7 + Math.random() * 0.8],
     skew: -10 + Math.random() * 20,
@@ -27,8 +33,8 @@ function generateRandomEllipse(): EllipseConfig {
   };
 }
 
-function generateSVG(): string {
-  const ellipses = Array.from({ length: 12 }, generateRandomEllipse);
+function generateSVG(palette: string[]): string {
+  const ellipses = Array.from({ length: 12 }, () => generateRandomEllipse(palette));
 
   const gradients = ellipses.map((ellipse, index) => {
     return `<radialGradient id="grad${index}" fx="${ellipse.fx}" fy="0.5">
@@ -51,11 +57,17 @@ function generateSVG(): string {
 }
 
 export default function EllipseGenerator() {
-  const [svgContent, setSvgContent] = useState(() => generateSVG());
+  const [selectedPalette, setSelectedPalette] = useState('OpenAI (2020)');
+  const [svgContent, setSvgContent] = useState(() => generateSVG(colorPalettes['OpenAI (2020)']));
   const svgRef = useRef<HTMLDivElement>(null);
 
   const handleRegenerate = () => {
-    setSvgContent(generateSVG());
+    setSvgContent(generateSVG(colorPalettes[selectedPalette as keyof typeof colorPalettes]));
+  };
+
+  const handlePaletteChange = (palette: string) => {
+    setSelectedPalette(palette);
+    setSvgContent(generateSVG(colorPalettes[palette as keyof typeof colorPalettes]));
   };
 
   const handleDownloadSVG = () => {
@@ -100,31 +112,61 @@ export default function EllipseGenerator() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-      <Card className="w-full max-w-2xl p-6 space-y-6">
-        <div className="text-center">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Ellipse Generator</h1>
-          <p className="text-gray-600">Generate beautiful gradient ellipse patterns</p>
+    <div className="min-h-screen bg-gray-50 p-4">
+      <div className="max-w-7xl mx-auto">
+        <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-6">
+          {/* Left Pane - Sidebar */}
+          <Card className="p-4 space-y-4">
+            <div className="space-y-3">
+              <Label htmlFor="palette-select">Color Palette</Label>
+              <Select value={selectedPalette} onValueChange={handlePaletteChange}>
+                <SelectTrigger id="palette-select">
+                  <SelectValue placeholder="Select a color palette" />
+                </SelectTrigger>
+                <SelectContent>
+                  {Object.keys(colorPalettes).map((palette) => (
+                    <SelectItem key={palette} value={palette}>
+                      <div className="flex items-center gap-2">
+                        <div className="flex gap-1">
+                          {colorPalettes[palette as keyof typeof colorPalettes].map((color, index) => (
+                            <div
+                              key={index}
+                              className="w-3 h-3 rounded-full border border-gray-300"
+                              style={{ backgroundColor: color }}
+                            />
+                          ))}
+                        </div>
+                        <span>{palette}</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </Card>
+          
+          {/* Right Pane - Preview and Controls */}
+          <Card className="p-6 space-y-6">
+            <div
+              ref={svgRef}
+              className="flex justify-center bg-white rounded-lg border p-4"
+              dangerouslySetInnerHTML={{ __html: svgContent }}
+            />
+            
+            <div className="flex gap-3 justify-center">
+              <Button onClick={handleRegenerate} className="flex-1 max-w-xs">
+                Regenerate
+              </Button>
+              <Button onClick={handleDownloadSVG} variant="outline" className="flex-1 max-w-xs">
+                Download SVG
+              </Button>
+              <Button onClick={handleDownloadPNG} variant="outline" className="flex-1 max-w-xs">
+                Download PNG
+              </Button>
+            </div>
+          </Card>
         </div>
-
-        <div
-          ref={svgRef}
-          className="flex justify-center bg-white rounded-lg border p-4"
-          dangerouslySetInnerHTML={{ __html: svgContent }}
-        />
-
-        <div className="flex gap-3 justify-center">
-          <Button onClick={handleRegenerate} className="flex-1 max-w-xs">
-            Regenerate
-          </Button>
-          <Button onClick={handleDownloadSVG} variant="outline" className="flex-1 max-w-xs">
-            Download SVG
-          </Button>
-          <Button onClick={handleDownloadPNG} variant="outline" className="flex-1 max-w-xs">
-            Download PNG
-          </Button>
-        </div>
-      </Card>
+      </div>
     </div>
   );
 }
