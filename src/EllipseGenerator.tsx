@@ -153,18 +153,44 @@ export default function EllipseGenerator() {
               dangerouslySetInnerHTML={{ __html: svgContent }}
             />
             
-            <div className="flex gap-3 justify-center">
-              <Button onClick={handleRegenerate} className="flex-1 max-w-xs">
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <div className="flex gap-3 justify-center sm:order-2">
+                <Button onClick={handleDownloadSVG} variant="outline" className="flex-1 max-w-xs">
+                  Download SVG
+                </Button>
+                <Button onClick={handleDownloadPNG} variant="outline" className="flex-1 max-w-xs">
+                  Download PNG
+                </Button>
+              </div>
+              <Button onClick={handleRegenerate} className="flex-1 max-w-xs sm:order-1">
                 Regenerate
-              </Button>
-              <Button onClick={handleDownloadSVG} variant="outline" className="flex-1 max-w-xs">
-                Download SVG
-              </Button>
-              <Button onClick={handleDownloadPNG} variant="outline" className="flex-1 max-w-xs">
-                Download PNG
               </Button>
             </div>
           </Card>
+        </div>
+        
+        <div className="mt-8 text-center">
+          <p className="text-sm text-gray-500">
+            Inspired by & reverse-engineered from{' '}
+            <a 
+              href="https://justinjay.wang/methods-for-random-gradients/" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-blue-600 hover:underline"
+            >
+              Justin Jay Wang's blog post
+            </a>
+            . View source & read more on{' '}
+            <a 
+              href="https://github.com/venkr/gradient-gen" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-blue-600 hover:underline"
+            >
+              GitHub
+            </a>
+            .
+          </p>
         </div>
       </div>
     </div>
